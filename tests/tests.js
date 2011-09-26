@@ -27,26 +27,28 @@ vows.describe('Generate deck of flash cards').addBatch({
       assert.isFunction(topic.getType);
       assert.equal(topic.getType(), 'add');
     },
-    'has a nextCard function': function (topic) {
-      assert.isFunction(topic.nextCard);
-    },
     'has card objects in its cards array': function (topic) {
-        topic.getCards().forEach(function() {
-          topic.nextCard(function(card) {
-            if (card) {
-              assert.isObject(card);
-              assert.include(card, 'terms');
-              assert.typeOf(card.terms, 'array');
-              assert.include(card, 'operation');
-              assert.typeOf(card.operation, 'string');
-              assert.equal(card.operation, 'add');
-              assert.equal(topic.getCurrentCard(), card);
-            } else {
-              assert.equal(card, undefined);
-              assert.equal(topic.getCurrentCard(), topic.getCards()[0]);
-            };
+        
+    },
+    'has a nextCard function': {
+      'that calls back with the next card': function (topic) {
+        topic.nextCard(function(card) { 
+          assert.deepEqual(card, topic.getCards()[1]); 
+          assert.deepEqual(card, topic.getCurrentCard());
         });
-      });//Assert that when we're at the end, nextCard returns 'false' and currentCard is 0
+      },
+      'that returns false when there are no cards left': function (topic) {
+        for (var x=0; x<topic.getSize()-3; x++) {
+          (function(y) {
+            topic.nextCard(function(card) {
+              if (y===topic.getSize()) {
+                assert.isUndefined(card);
+                assert.equal(topic.getCurrentCard(), topic.getCards()[0]);
+              }
+            });
+          })(x);
+        }
+      }
     }
   }
 }).run(); // Run it
